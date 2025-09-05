@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { GameMode } from '../utils/gameLogic';
+import { Logo } from './Logo';
 
 interface GameModeInfo {
   id: GameMode;
@@ -58,10 +59,10 @@ export const GameModeSelector = ({ onModeSelect }: GameModeSelectorProps) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerCard}>
-        <Text style={styles.title}>Choose Game Mode</Text>
-        <Text style={styles.subtitle}>Select your preferred way to play NumbReX</Text>
+      <View style={styles.logoSection}>
+        <Logo size="medium" showSubtitle={false} />
       </View>
+      
 
       <ScrollView 
         style={styles.scrollContainer}
@@ -115,37 +116,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  headerCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 32,
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 24,
+  logoSection: {
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 12,
-    textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#64748B',
-    textAlign: 'center',
-    fontWeight: '400',
-    lineHeight: 24,
+    paddingTop: 10,
+    paddingBottom: 5,
   },
   scrollContainer: {
     flex: 1,

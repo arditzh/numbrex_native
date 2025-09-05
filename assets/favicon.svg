@@ -1,0 +1,17 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="48" height="48" rx="8" fill="#3B82F6"/>
+  
+  <!-- NumbReX Initial -->
+  <text x="24" y="20" font-family="Arial, sans-serif" font-size="14" font-weight="700" text-anchor="middle" fill="#FFFFFF">N</text>
+  
+  <!-- Mini Digits -->
+  <rect x="12" y="26" width="8" height="8" rx="1" fill="#22C55E"/>
+  <text x="16" y="32" font-family="Arial, sans-serif" font-size="5" font-weight="700" text-anchor="middle" fill="#FFFFFF">5</text>
+  
+  <rect x="22" y="26" width="8" height="8" rx="1" fill="#F59E0B"/>
+  <text x="26" y="32" font-family="Arial, sans-serif" font-size="5" font-weight="700" text-anchor="middle" fill="#FFFFFF">2</text>
+  
+  <rect x="32" y="26" width="8" height="8" rx="1" fill="#EF4444"/>
+  <text x="36" y="32" font-family="Arial, sans-serif" font-size="5" font-weight="700" text-anchor="middle" fill="#FFFFFF">8</text>
+</svg>

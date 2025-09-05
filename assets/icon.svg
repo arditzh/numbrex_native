@@ -1,0 +1,29 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="512" cy="512" r="512" fill="#3B82F6"/>
+  
+  <!-- Inner Circle -->
+  <circle cx="512" cy="512" r="400" fill="#FFFFFF" fill-opacity="0.1"/>
+  
+  <!-- Main Logo Container -->
+  <rect x="256" y="256" width="512" height="512" rx="80" fill="#FFFFFF"/>
+  
+  <!-- NumbReX Text -->
+  <text x="512" y="420" font-family="Arial, sans-serif" font-size="80" font-weight="700" text-anchor="middle" fill="#3B82F6">NumbReX</text>
+  
+  <!-- Digit Cells -->
+  <rect x="320" y="480" width="80" height="80" rx="12" fill="#22C55E" stroke="#16A34A" stroke-width="3"/>
+  <text x="360" y="535" font-family="Arial, sans-serif" font-size="36" font-weight="700" text-anchor="middle" fill="#FFFFFF">5</text>
+  
+  <rect x="420" y="480" width="80" height="80" rx="12" fill="#F59E0B" stroke="#D97706" stroke-width="3"/>
+  <text x="460" y="535" font-family="Arial, sans-serif" font-size="36" font-weight="700" text-anchor="middle" fill="#FFFFFF">2</text>
+  
+  <rect x="520" y="480" width="80" height="80" rx="12" fill="#EF4444" stroke="#DC2626" stroke-width="3"/>
+  <text x="560" y="535" font-family="Arial, sans-serif" font-size="36" font-weight="700" text-anchor="middle" fill="#FFFFFF">8</text>
+  
+  <rect x="620" y="480" width="80" height="80" rx="12" fill="#8B5CF6" stroke="#7C3AED" stroke-width="3"/>
+  <text x="660" y="535" font-family="Arial, sans-serif" font-size="36" font-weight="700" text-anchor="middle" fill="#FFFFFF">1</text>
+  
+  <!-- Subtitle -->
+  <text x="512" y="620" font-family="Arial, sans-serif" font-size="32" font-weight="400" text-anchor="middle" fill="#64748B">Code Cracker Game</text>
+</svg>
