@@ -6,7 +6,9 @@ import {
   StyleSheet, 
   ScrollView, 
   TextInput,
-  Dimensions 
+  Dimensions,
+  Keyboard,
+  TouchableWithoutFeedback
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { GameModeSelector } from './GameModeSelector';
@@ -59,6 +61,8 @@ export const NumberGame = () => {
   });
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const inputSectionRef = useRef<View>(null);
 
   // Timer effect for Speed Mode and Survival Mode
   useEffect(() => {
@@ -161,6 +165,9 @@ export const NumberGame = () => {
   const submitGuess = () => {
     if (!gameState.mode) return;
     
+    // Dismiss keyboard
+    Keyboard.dismiss();
+    
     const currentGuessString = gameState.currentGuess.join('');
     const currentConfig = getStageConfig(gameState.stage, gameState.mode, gameState.speedModeDigits);
     
@@ -215,6 +222,7 @@ export const NumberGame = () => {
     if (!isGameOver) {
       setTimeout(() => {
         inputRefs.current[0]?.focus();
+        scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   };
@@ -240,6 +248,23 @@ export const NumberGame = () => {
     }));
   };
 
+  const scrollToInput = () => {
+    setTimeout(() => {
+      if (inputSectionRef.current && scrollViewRef.current) {
+        inputSectionRef.current.measureInWindow((x, y, width, height) => {
+          const screenHeight = Dimensions.get('window').height;
+          const keyboardHeight = 300; // Approximate keyboard height
+          const targetY = Math.max(0, y - (screenHeight - keyboardHeight - height - 50));
+          
+          scrollViewRef.current?.scrollTo({
+            y: targetY,
+            animated: true
+          });
+        });
+      }
+    }, 100);
+  };
+
   const handleDigitChange = (value: string, index: number) => {
     const digit = value.replace(/\D/g, '').slice(-1);
     const newCurrentGuess = [...gameState.currentGuess];
@@ -259,6 +284,9 @@ export const NumberGame = () => {
     if (digit) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    
+    // Scroll to keep input visible
+    scrollToInput();
   };
 
   const handleKeyPress = (key: string, index: number) => {
@@ -275,72 +303,95 @@ export const NumberGame = () => {
   const currentConfig = getStageConfig(gameState.stage, gameState.mode, gameState.speedModeDigits);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={backToModeSelection}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>← Change Mode</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.statsCard}>
-        <GameStats 
-          stage={gameState.stage}
-          stageName={currentConfig.name}
-          attempts={gameState.attempts}
-          maxAttempts={gameState.maxAttempts}
-          digits={currentConfig.digits}
-          isUnlimited={currentConfig.isUnlimited}
-          mode={gameState.mode}
-          score={gameState.score}
-          timeRemaining={gameState.timeRemaining}
-          survivalStreak={gameState.survivalStreak}
-          isBossLevel={currentConfig.isBossLevel}
-        />
-      </View>
-
-      <View style={styles.gameCard}>
-        <View style={styles.guessesContainer}>
-          {gameState.guesses.map((guess, index) => (
-            <GuessRow 
-              key={index} 
-              guess={guess.number} 
-              feedback={guess.feedback}
-              isRevealed={true}
-              targetLength={currentConfig.digits}
-            />
-          ))}
-        </View>
-
-        {!gameState.gameOver && (
-          <View style={styles.inputSection}>
-            <View style={styles.inputContainer}>
-              {Array.from({ length: currentConfig.digits }, (_, index) => (
-                <DigitInput
-                  key={index}
-                  ref={(ref) => { inputRefs.current[index] = ref; }}
-                  index={index}
-                  value={gameState.currentGuess[index] || ''}
-                  onChangeText={(value) => handleDigitChange(value, index)}
-                  onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
-                />
-              ))}
-            </View>
-            
-            <TouchableOpacity 
-              onPress={submitGuess}
-              style={[
-                styles.submitButton,
-                gameState.currentGuess.filter(digit => digit !== '').length !== currentConfig.digits && styles.submitButtonDisabled
-              ]}
-              disabled={gameState.currentGuess.filter(digit => digit !== '').length !== currentConfig.digits}
+    <View style={styles.container}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.fixedHeader}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={backToModeSelection}
+              style={styles.backButton}
             >
-              <Text style={styles.submitButtonText}>Submit Guess</Text>
+              <Text style={styles.backButtonText}>← Change Mode</Text>
             </TouchableOpacity>
           </View>
-        )}
+          
+          <View style={styles.statsCard}>
+            <GameStats 
+              stage={gameState.stage}
+              stageName={currentConfig.name}
+              attempts={gameState.attempts}
+              maxAttempts={gameState.maxAttempts}
+              digits={currentConfig.digits}
+              isUnlimited={currentConfig.isUnlimited}
+              mode={gameState.mode}
+              score={gameState.score}
+              timeRemaining={gameState.timeRemaining}
+              survivalStreak={gameState.survivalStreak}
+              isBossLevel={currentConfig.isBossLevel}
+            />
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+
+      <View style={styles.gameCard}>
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.gameScrollView}
+          contentContainerStyle={styles.gameScrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.guessesContainer}>
+            {gameState.guesses.map((guess, index) => (
+              <GuessRow 
+                key={index} 
+                guess={guess.number} 
+                feedback={guess.feedback}
+                isRevealed={true}
+                targetLength={currentConfig.digits}
+              />
+            ))}
+          </View>
+
+          {!gameState.gameOver && (
+            <View 
+              ref={inputSectionRef}
+              style={styles.inputSection}
+            >
+              <View style={styles.inputContainer}>
+                {Array.from({ length: currentConfig.digits }, (_, index) => (
+                  <DigitInput
+                    key={index}
+                    ref={(ref) => { inputRefs.current[index] = ref; }}
+                    index={index}
+                    value={gameState.currentGuess[index] || ''}
+                    onChangeText={(value) => handleDigitChange(value, index)}
+                    onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 100);
+                    }}
+                  />
+                ))}
+              </View>
+              
+              <View style={styles.tickButtonContainer}>
+                <TouchableOpacity 
+                  onPress={submitGuess}
+                  style={[
+                    styles.tickButton,
+                    gameState.currentGuess.filter(digit => digit !== '').length !== currentConfig.digits && styles.tickButtonDisabled
+                  ]}
+                  disabled={gameState.currentGuess.filter(digit => digit !== '').length !== currentConfig.digits}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.tickButtonText}>✓</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </ScrollView>
 
         {gameState.gameOver && (
           <View style={styles.gameOverContainer}>
@@ -381,27 +432,29 @@ export const NumberGame = () => {
         )}
       </View>
 
-      <View style={styles.legendCard}>
-        <View style={styles.legendRow}>
-          <View style={[styles.legendDigit, styles.legendCorrect]}>
-            <Text style={styles.legendSymbol}>✓</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.legendCard}>
+          <View style={styles.legendRow}>
+            <View style={[styles.legendDigit, styles.legendCorrect]}>
+              <Text style={styles.legendSymbol}>✓</Text>
+            </View>
+            <Text style={styles.legendText}>Correct digit, correct position</Text>
           </View>
-          <Text style={styles.legendText}>Correct digit, correct position</Text>
-        </View>
-        <View style={styles.legendRow}>
-          <View style={[styles.legendDigit, styles.legendPartial]}>
-            <Text style={styles.legendSymbol}>?</Text>
+          <View style={styles.legendRow}>
+            <View style={[styles.legendDigit, styles.legendPartial]}>
+              <Text style={styles.legendSymbol}>?</Text>
+            </View>
+            <Text style={styles.legendText}>Correct digit, wrong position</Text>
           </View>
-          <Text style={styles.legendText}>Correct digit, wrong position</Text>
-        </View>
-        <View style={styles.legendRow}>
-          <View style={[styles.legendDigit, styles.legendIncorrect]}>
-            <Text style={styles.legendSymbol}>✗</Text>
+          <View style={styles.legendRow}>
+            <View style={[styles.legendDigit, styles.legendIncorrect]}>
+              <Text style={styles.legendSymbol}>✗</Text>
+            </View>
+            <Text style={styles.legendText}>Wrong digit</Text>
           </View>
-          <Text style={styles.legendText}>Wrong digit</Text>
         </View>
-      </View>
-    </ScrollView>
+      </TouchableWithoutFeedback>
+    </View>
   );
 };
 
@@ -410,8 +463,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  contentContainer: {
-    padding: 20,
+  fixedHeader: {
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   header: {
     alignItems: 'center',
@@ -457,8 +513,8 @@ const styles = StyleSheet.create({
   gameCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    padding: 24,
-    marginBottom: 20,
+    marginHorizontal: 20,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -469,6 +525,14 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderWidth: 1,
     borderColor: '#F1F5F9',
+    flex: 1,
+  },
+  gameScrollView: {
+    flex: 1,
+  },
+  gameScrollContent: {
+    padding: 24,
+    paddingBottom: 40,
   },
   guessesContainer: {
     marginBottom: 28,
@@ -476,41 +540,46 @@ const styles = StyleSheet.create({
   },
   inputSection: {
     alignItems: 'center',
+    marginBottom: 28,
   },
   inputContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
-    marginBottom: 28,
-    paddingHorizontal: 8,
-  },
-  submitButton: {
-    backgroundColor: '#3B82F6',
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 40,
-    width: '100%',
     alignItems: 'center',
-    shadowColor: '#3B82F6',
+    gap: 6,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  tickButtonContainer: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  tickButton: {
+    backgroundColor: '#22C55E',
+    borderRadius: 12,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#22C55E',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  submitButtonDisabled: {
+  tickButtonDisabled: {
     backgroundColor: '#CBD5E1',
     shadowColor: '#64748B',
     shadowOpacity: 0.1,
-    elevation: 2,
+    elevation: 1,
   },
-  submitButtonText: {
+  tickButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: 0.2,
+    fontSize: 20,
+    fontWeight: '700',
   },
   gameOverContainer: {
     alignItems: 'center',
@@ -610,6 +679,8 @@ const styles = StyleSheet.create({
   legendCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
+    margin: 20,
+    marginTop: 10,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: {
