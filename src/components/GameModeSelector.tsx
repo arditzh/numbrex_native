@@ -118,14 +118,15 @@ const styles = StyleSheet.create({
   },
   logoSection: {
     alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 5,
+    paddingTop: 5,
+    paddingBottom: 0,
   },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
+    paddingTop: 10,
     paddingBottom: 40,
   },
   modeCard: {
