@@ -8,7 +8,6 @@ interface GameModeInfo {
   name: string;
   description: string;
   icon: string;
-  details: string[];
 }
 
 interface GameModeSelectorProps {
@@ -21,92 +20,51 @@ export const GameModeSelector = ({ onModeSelect }: GameModeSelectorProps) => {
   const gameModes: GameModeInfo[] = [
     {
       id: 'classic',
-      name: 'Classic Mode',
-      description: 'Traditional gameplay with attempts',
-      icon: '🎯',
-      details: [
-        '6 attempts per standard level',
-        '8-10 attempts for boss levels',
-        'No time pressure',
-        'Progress through 60+ stages'
-      ]
+      name: 'Classic',
+      description: 'Progress through levels with limited attempts. Each stage presents a unique challenge.',
+      icon: '🎯'
     },
     {
       id: 'speed',
-      name: 'Speed Mode',
-      description: 'Solve as many as possible in 60 seconds',
-      icon: '⚡',
-      details: [
-        '60 second time limit',
-        'Unlimited attempts per number',
-        'Score based on numbers solved',
-        'Quick succession gameplay'
-      ]
+      name: 'Speed',
+      description: 'Race against time! Solve as many numbers as possible in 60 seconds. Test your quick thinking.',
+      icon: '⚡'
     },
     {
       id: 'survival',
-      name: 'Survival Mode',
-      description: 'One mistake ends your run',
-      icon: '💀',
-      details: [
-        'One wrong guess = game over',
-        'Multiplying rewards',
-        'Increasing difficulty',
-        'High-risk, high-reward'
-      ]
+      name: 'Survival',
+      description: 'One mistake ends your run. Rewards multiply as you progress - how far can you go?',
+      icon: '💀'
     }
   ];
 
   return (
     <View style={styles.container}>
       <View style={styles.logoSection}>
-        <Logo size="medium" showSubtitle={false} />
+        <Logo size="small" showSubtitle={false} />
       </View>
-      
 
-      <ScrollView 
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces={true}
-      >
+      <View style={styles.modesContainer}>
+        <Text style={styles.headerText}>Choose your game mode:</Text>
         {gameModes.map((mode) => (
           <TouchableOpacity
             key={mode.id}
             style={styles.modeCard}
             onPress={() => onModeSelect(mode.id)}
-            activeOpacity={0.7}
+            activeOpacity={0.95}
           >
             <View style={styles.modeContent}>
               <View style={styles.iconContainer}>
                 <Text style={styles.modeIcon}>{mode.icon}</Text>
               </View>
-              
               <View style={styles.modeInfo}>
                 <Text style={styles.modeName}>{mode.name}</Text>
                 <Text style={styles.modeDescription}>{mode.description}</Text>
               </View>
-              
-              <View style={styles.modeDetails}>
-                {mode.details.map((detail, index) => (
-                  <View key={index} style={styles.detailRow}>
-                    <Text style={styles.bullet}>•</Text>
-                    <Text style={styles.detailText}>{detail}</Text>
-                  </View>
-                ))}
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.playButton}
-                onPress={() => onModeSelect(mode.id)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.playButtonText}>Play {mode.name}</Text>
-              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -115,116 +73,111 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+    paddingHorizontal: Math.min(24, width * 0.06),
+    paddingTop: height * 0.06,
   },
   logoSection: {
     alignItems: 'center',
-    paddingTop: 5,
-    paddingBottom: 0,
+    marginBottom: height * 0.05,
+    height: height * 0.08,
+    justifyContent: 'center',
   },
-  scrollContainer: {
+  modesContainer: {
     flex: 1,
+    justifyContent: 'center',
+    paddingBottom: height * 0.06,
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 40,
+  headerText: {
+    fontSize: Math.min(15, width * 0.04),
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: height * 0.02,
+    textAlign: 'left',
   },
   modeCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 28,
-    marginBottom: 20,
-    shadowColor: '#000',
+    borderRadius: 16,
+    padding: Math.min(18, width * 0.045),
+    marginBottom: height * 0.018,
+    shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
     borderWidth: 1,
     borderColor: '#F1F5F9',
+    width: '100%',
+    maxWidth: Math.min(360, width * 0.88),
+    alignSelf: 'center',
   },
   modeContent: {
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#F8FAFC',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-  },
-  modeIcon: {
-    fontSize: 40,
-  },
-  modeInfo: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  modeName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#3B82F6',
-    marginBottom: 8,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
-  modeDescription: {
-    fontSize: 16,
-    color: '#64748B',
-    textAlign: 'center',
-    fontWeight: '400',
-    lineHeight: 22,
-  },
-  modeDetails: {
-    width: '100%',
-    marginBottom: 28,
-    paddingHorizontal: 8,
-  },
-  detailRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    paddingVertical: Math.min(4, height * 0.005),
   },
-  bullet: {
-    color: '#3B82F6',
-    fontSize: 18,
-    marginRight: 12,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  detailText: {
-    fontSize: 15,
-    color: '#475569',
-    flex: 1,
-    lineHeight: 20,
-    fontWeight: '400',
-  },
-  playButton: {
-    backgroundColor: '#3B82F6',
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 40,
-    width: '100%',
+  iconContainer: {
+    width: Math.min(48, width * 0.115),
+    height: Math.min(48, width * 0.115),
+    borderRadius: 14,
+    backgroundColor: '#EFF6FF',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Math.min(16, width * 0.04),
     shadowColor: '#3B82F6',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  playButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
+  modeIcon: {
+    fontSize: Math.min(24, width * 0.06),
+  },
+  modeInfo: {
+    flex: 1,
+    paddingRight: 6,
+    paddingVertical: 2,
+  },
+  modeName: {
+    fontSize: Math.min(17, width * 0.045),
     fontWeight: '600',
-    letterSpacing: 0.2,
+    color: '#1E293B',
+    marginBottom: 6,
+    letterSpacing: -0.2,
+  },
+  modeDescription: {
+    fontSize: Math.min(14, width * 0.037),
+    color: '#64748B',
+    fontWeight: '400',
+    lineHeight: Math.min(19, width * 0.05),
+  },
+  infoSection: {
+    paddingTop: height * 0.03,
+    paddingBottom: height * 0.04,
+    paddingHorizontal: 4,
+    marginTop: 'auto',
+  },
+  infoHeader: {
+    fontSize: Math.min(15, width * 0.04),
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: height * 0.02,
+    textAlign: 'left',
+  },
+  infoText: {
+    fontSize: Math.min(14, width * 0.037),
+    color: '#64748B',
+    lineHeight: Math.min(20, width * 0.052),
+    marginBottom: height * 0.02,
+    textAlign: 'left',
+  },
+  highlightText: {
+    color: '#3B82F6',
+    fontWeight: '500',
   },
 });
