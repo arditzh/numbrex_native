@@ -435,23 +435,19 @@ export const NumberGame = () => {
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.legendCard}>
-          <View style={styles.legendRow}>
-            <View style={[styles.legendDigit, styles.legendCorrect]}>
-              <Text style={styles.legendSymbol}>✓</Text>
+          <View style={styles.legendContainer}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, styles.legendCorrect]} />
+              <Text style={styles.legendText}>Correct</Text>
             </View>
-            <Text style={styles.legendText}>Correct digit, correct position</Text>
-          </View>
-          <View style={styles.legendRow}>
-            <View style={[styles.legendDigit, styles.legendPartial]}>
-              <Text style={styles.legendSymbol}>?</Text>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, styles.legendPartial]} />
+              <Text style={styles.legendText}>Wrong Place</Text>
             </View>
-            <Text style={styles.legendText}>Correct digit, wrong position</Text>
-          </View>
-          <View style={styles.legendRow}>
-            <View style={[styles.legendDigit, styles.legendIncorrect]}>
-              <Text style={styles.legendSymbol}>✗</Text>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, styles.legendIncorrect]} />
+              <Text style={styles.legendText}>Wrong</Text>
             </View>
-            <Text style={styles.legendText}>Wrong digit</Text>
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -678,10 +674,11 @@ const styles = StyleSheet.create({
   },
   legendCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    margin: 20,
-    marginTop: 10,
-    padding: 20,
+    borderRadius: moderateScale(12),
+    marginHorizontal: scale(20),
+    marginVertical: verticalScale(8),
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(16),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -691,44 +688,45 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: '#E5E7EB',
   },
-  legendRow: {
+  legendContainer: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  legendDigit: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+  legendItem: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-    borderWidth: 1,
+    flex: 1,
   },
-  legendSymbol: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
+  legendDot: {
+    width: moderateScale(16),
+    height: moderateScale(16),
+    borderRadius: moderateScale(8),
+    marginBottom: verticalScale(4),
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 2,
   },
   legendText: {
-    fontSize: 14,
-    color: '#475569',
-    flex: 1,
-    fontWeight: '500',
-    lineHeight: 18,
+    fontSize: moderateScale(10),
+    color: '#6B7280',
+    fontWeight: '600',
+    textAlign: 'center',
+    letterSpacing: 0.1,
   },
   legendCorrect: {
     backgroundColor: '#22C55E',
-    borderColor: '#16A34A',
   },
   legendPartial: {
     backgroundColor: '#F59E0B',
-    borderColor: '#D97706',
   },
   legendIncorrect: {
     backgroundColor: '#EF4444',
-    borderColor: '#DC2626',
   },
 });
