@@ -10,6 +10,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback
 } from 'react-native';
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import * as Haptics from 'expo-haptics';
 import { GameModeSelector } from './GameModeSelector';
 import { GameStats } from './GameStats';
@@ -306,29 +307,29 @@ export const NumberGame = () => {
     <View style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.fixedHeader}>
-          <View style={styles.header}>
+          <View style={styles.headerContainer}>
             <TouchableOpacity
               onPress={backToModeSelection}
-              style={styles.backButton}
+              style={styles.headerChangeModeButton}
             >
-              <Text style={styles.backButtonText}>← Change Mode</Text>
+              <Text style={styles.changeModeText}>← Mode</Text>
             </TouchableOpacity>
-          </View>
-          
-          <View style={styles.statsCard}>
-            <GameStats 
-              stage={gameState.stage}
-              stageName={currentConfig.name}
-              attempts={gameState.attempts}
-              maxAttempts={gameState.maxAttempts}
-              digits={currentConfig.digits}
-              isUnlimited={currentConfig.isUnlimited}
-              mode={gameState.mode}
-              score={gameState.score}
-              timeRemaining={gameState.timeRemaining}
-              survivalStreak={gameState.survivalStreak}
-              isBossLevel={currentConfig.isBossLevel}
-            />
+            
+            <View style={styles.statsContainer}>
+              <GameStats 
+                stage={gameState.stage}
+                stageName={currentConfig.name}
+                attempts={gameState.attempts}
+                maxAttempts={gameState.maxAttempts}
+                digits={currentConfig.digits}
+                isUnlimited={currentConfig.isUnlimited}
+                mode={gameState.mode}
+                score={gameState.score}
+                timeRemaining={gameState.timeRemaining}
+                survivalStreak={gameState.survivalStreak}
+                isBossLevel={currentConfig.isBossLevel}
+              />
+            </View>
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -465,50 +466,49 @@ const styles = StyleSheet.create({
   },
   fixedHeader: {
     backgroundColor: '#F8FAFC',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingHorizontal: scale(16),
+    paddingTop: verticalScale(16),
+    paddingBottom: verticalScale(8),
   },
-  header: {
+  headerContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: moderateScale(16),
+    padding: scale(12),
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  backButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    shadowColor: '#64748B',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  backButtonText: {
-    color: '#64748B',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  statsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
+    justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
     borderWidth: 1,
     borderColor: '#F1F5F9',
+    minHeight: verticalScale(60),
+  },
+  headerChangeModeButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: verticalScale(6),
+    paddingHorizontal: scale(8),
+    borderRadius: moderateScale(8),
+  },
+  changeModeText: {
+    color: '#64748B',
+    fontSize: moderateScale(11),
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  statsContainer: {
+    flex: 1,
+    marginLeft: scale(8),
+  },
+  statsCard: {
+    backgroundColor: 'transparent',
+    padding: 0,
+    margin: 0,
   },
   gameCard: {
     backgroundColor: '#FFFFFF',
