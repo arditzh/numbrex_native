@@ -62,9 +62,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   containerCompact: {
-    gap: 6,
-    marginVertical: 2,
-    paddingHorizontal: 2,
+    gap: 4,
+    marginVertical: 1,
+    paddingHorizontal: 1,
     justifyContent: 'center',
   },
   digitCell: {
@@ -84,12 +84,12 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1 }],
   },
   digitCellCompact: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     borderWidth: 1.5,
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
+    shadowOpacity: 0.10,
+    shadowRadius: 3,
     elevation: 2,
   },
   digitText: {
