@@ -6,9 +6,10 @@ interface GuessRowProps {
   feedback: ('correct' | 'partial' | 'incorrect')[];
   isRevealed: boolean;
   targetLength?: number;
+  isCompact?: boolean; // New prop for previous attempts display
 }
 
-export const GuessRow = ({ guess, feedback, isRevealed, targetLength = 3 }: GuessRowProps) => {
+export const GuessRow = ({ guess, feedback, isRevealed, targetLength = 3, isCompact = false }: GuessRowProps) => {
   const digits = guess.split('');
   const remainingSlots = Math.max(0, targetLength - digits.length);
 
@@ -26,16 +27,16 @@ export const GuessRow = ({ guess, feedback, isRevealed, targetLength = 3 }: Gues
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isCompact && styles.containerCompact]}>
       {digits.map((digit, index) => {
         const feedbackType = isRevealed && feedback[index] ? feedback[index] : 'empty';
         
         return (
           <View
             key={index}
-            style={getDigitStyle(feedbackType)}
+            style={[getDigitStyle(feedbackType), isCompact && styles.digitCellCompact]}
           >
-            <Text style={styles.digitText}>{digit}</Text>
+            <Text style={[styles.digitText, isCompact && styles.digitTextCompact]}>{digit}</Text>
           </View>
         );
       })}
@@ -60,6 +61,12 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     paddingHorizontal: 8,
   },
+  containerCompact: {
+    gap: 6,
+    marginVertical: 2,
+    paddingHorizontal: 2,
+    justifyContent: 'center',
+  },
   digitCell: {
     width: 52,
     height: 52,
@@ -76,6 +83,15 @@ const styles = StyleSheet.create({
     elevation: 4,
     transform: [{ scale: 1 }],
   },
+  digitCellCompact: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   digitText: {
     fontSize: 24,
     fontWeight: '800',
@@ -83,6 +99,10 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.1)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+  },
+  digitTextCompact: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   digitCorrect: {
     backgroundColor: '#22C55E',
