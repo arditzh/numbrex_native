@@ -1,15 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, SafeAreaView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { NumberGame } from './src/components/NumberGame';
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.gameContainer}>
-        <NumberGame />
-      </View>
-      <StatusBar style="dark" />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.gameContainer}>
+          <NumberGame />
+        </View>
+        <StatusBar style="dark" />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -20,7 +23,7 @@ const styles = StyleSheet.create({
   },
   gameContainer: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
 });

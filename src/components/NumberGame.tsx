@@ -5,12 +5,8 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   ScrollView, 
-  TextInput,
   Dimensions,
-  Keyboard,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Platform
+  TouchableWithoutFeedback
 } from 'react-native';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import * as Haptics from 'expo-haptics';
@@ -18,6 +14,7 @@ import { GameModeSelector } from './GameModeSelector';
 import { GameStats } from './GameStats';
 import { GuessRow } from './GuessRow';
 import { DigitInput } from './DigitInput';
+import { NumericKeypad } from './NumericKeypad';
 import { 
   GameMode, 
   Guess, 
@@ -63,7 +60,9 @@ export const NumberGame = () => {
     speedModeDigits: 3
   });
 
-  const inputRefs = useRef<(TextInput | null)[]>([]);
+  const [currentInputIndex, setCurrentInputIndex] = useState(0);
+
+  const inputRefs = useRef<(any | null)[]>([]);
   const scrollViewRef = useRef<ScrollView>(null);
   const inputSectionRef = useRef<View>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -95,25 +94,6 @@ export const NumberGame = () => {
       if (interval) clearInterval(interval);
     };
   }, [gameState.mode, gameState.isTimerActive, gameState.timeRemaining, gameState.gameOver]);
-
-  // Keyboard event listeners for better input visibility
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-      setTimeout(() => {
-        scrollToInput();
-      }, 100);
-    });
-
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
 
   const selectMode = (mode: GameMode) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -151,6 +131,7 @@ export const NumberGame = () => {
       score: 0,
       survivalStreak: 0
     }));
+    setCurrentInputIndex(0);
   };
 
   const nextStage = () => {
@@ -177,6 +158,7 @@ export const NumberGame = () => {
       isTimerActive: prev.mode === 'speed' || prev.mode === 'survival',
       speedModeDigits: newSpeedModeDigits
     }));
+    setCurrentInputIndex(0);
   };
 
   useEffect(() => {
@@ -187,9 +169,6 @@ export const NumberGame = () => {
 
   const submitGuess = () => {
     if (!gameState.mode) return;
-    
-    // Dismiss keyboard
-    Keyboard.dismiss();
     
     const currentGuessString = gameState.currentGuess.join('');
     const currentConfig = getStageConfig(gameState.stage, gameState.mode, gameState.speedModeDigits);
@@ -276,7 +255,7 @@ export const NumberGame = () => {
       if (inputSectionRef.current && scrollViewRef.current) {
         inputSectionRef.current.measureInWindow((x, y, width, height) => {
           const screenHeight = Dimensions.get('window').height;
-          const keyboardHeight = Platform.OS === 'ios' ? 350 : 300;
+          const keyboardHeight = 350; // Fixed height for keyboard space
           const availableHeight = screenHeight - keyboardHeight;
           const inputBottom = y + height;
           
@@ -323,6 +302,60 @@ export const NumberGame = () => {
     }
   };
 
+  // Handle keypad input
+  const handleKeypadInput = (digit: string) => {
+    if (!gameState.mode || gameState.gameOver) return;
+    
+    const currentConfig = getStageConfig(gameState.stage, gameState.mode, gameState.speedModeDigits);
+    
+    // Find the next empty slot or use current index
+    let targetIndex = currentInputIndex;
+    if (gameState.currentGuess[targetIndex]) {
+      // If current slot is filled, find next empty slot
+      for (let i = 0; i < currentConfig.digits; i++) {
+        if (!gameState.currentGuess[i]) {
+          targetIndex = i;
+          break;
+        }
+      }
+    }
+    
+    if (targetIndex < currentConfig.digits) {
+      const newCurrentGuess = [...gameState.currentGuess];
+      while (newCurrentGuess.length < currentConfig.digits) {
+        newCurrentGuess.push('');
+      }
+      
+      newCurrentGuess[targetIndex] = digit;
+      setGameState(prev => ({ ...prev, currentGuess: newCurrentGuess }));
+      
+      // Move to next input if digit was entered and not at the end
+      if (targetIndex < currentConfig.digits - 1) {
+        setCurrentInputIndex(targetIndex + 1);
+      }
+      
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  // Handle backspace from keypad
+  const handleKeypadBackspace = () => {
+    if (!gameState.mode || gameState.gameOver) return;
+    
+    const currentConfig = getStageConfig(gameState.stage, gameState.mode, gameState.speedModeDigits);
+    const newCurrentGuess = [...gameState.currentGuess];
+    
+    // Find the last filled slot and clear it
+    for (let i = currentConfig.digits - 1; i >= 0; i--) {
+      if (newCurrentGuess[i]) {
+        newCurrentGuess[i] = '';
+        setCurrentInputIndex(i);
+        setGameState(prev => ({ ...prev, currentGuess: newCurrentGuess }));
+        break;
+      }
+    }
+  };
+
   // Show mode selector if no mode is selected
   if (!gameState.mode) {
     return <GameModeSelector onModeSelect={selectMode} />;
@@ -332,40 +365,34 @@ export const NumberGame = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.fixedHeader}>
-          <View style={styles.headerContainer}>
-            <TouchableOpacity
-              onPress={backToModeSelection}
-              style={styles.headerChangeModeButton}
-            >
-              <Text style={styles.changeModeText}>← Mode</Text>
-            </TouchableOpacity>
-            
-            <View style={styles.statsContainer}>
-              <GameStats 
-                stage={gameState.stage}
-                stageName={currentConfig.name}
-                attempts={gameState.attempts}
-                maxAttempts={gameState.maxAttempts}
-                digits={currentConfig.digits}
-                isUnlimited={currentConfig.isUnlimited}
-                mode={gameState.mode}
-                score={gameState.score}
-                timeRemaining={gameState.timeRemaining}
-                survivalStreak={gameState.survivalStreak}
-                isBossLevel={currentConfig.isBossLevel}
-              />
-            </View>
+      <View style={styles.fixedHeader}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity
+            onPress={backToModeSelection}
+            style={styles.headerChangeModeButton}
+          >
+            <Text style={styles.changeModeText}>← Mode</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.statsContainer}>
+            <GameStats 
+              stage={gameState.stage}
+              stageName={currentConfig.name}
+              attempts={gameState.attempts}
+              maxAttempts={gameState.maxAttempts}
+              digits={currentConfig.digits}
+              isUnlimited={currentConfig.isUnlimited}
+              mode={gameState.mode}
+              score={gameState.score}
+              timeRemaining={gameState.timeRemaining}
+              survivalStreak={gameState.survivalStreak}
+              isBossLevel={currentConfig.isBossLevel}
+            />
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
 
-      <KeyboardAvoidingView 
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
+      <View style={styles.gameContentContainer}>
         {/* Previous Attempts Section */}
         {gameState.guesses.length > 0 && (
           <View style={[
@@ -437,20 +464,23 @@ export const NumberGame = () => {
             >
               <View style={styles.inputContainer}>
                 {Array.from({ length: currentConfig.digits }, (_, index) => (
-                  <DigitInput
+                  <TouchableOpacity
                     key={index}
-                    ref={(ref) => { inputRefs.current[index] = ref; }}
-                    index={index}
-                    value={gameState.currentGuess[index] || ''}
-                    onChangeText={(value) => handleDigitChange(value, index)}
-                    onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
-                    onFocus={() => {
-                      setKeyboardVisible(true);
-                      setTimeout(() => {
-                        scrollToInput();
-                      }, 200);
-                    }}
-                  />
+                    style={[
+                      styles.digitDisplay,
+                      currentInputIndex === index && styles.digitDisplayActive,
+                      gameState.currentGuess[index] && styles.digitDisplayFilled
+                    ]}
+                    onPress={() => setCurrentInputIndex(index)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[
+                      styles.digitDisplayText,
+                      gameState.currentGuess[index] && styles.digitDisplayTextFilled
+                    ]}>
+                      {gameState.currentGuess[index] || ''}
+                    </Text>
+                  </TouchableOpacity>
                 ))}
               </View>
               
@@ -467,6 +497,13 @@ export const NumberGame = () => {
                   <Text style={styles.tickButtonText}>Submit Number</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Custom Numeric Keypad */}
+              <NumericKeypad
+                onKeyPress={handleKeypadInput}
+                onBackspace={handleKeypadBackspace}
+                disabled={gameState.gameOver}
+              />
             </View>
           </View>
         )}
@@ -508,11 +545,9 @@ export const NumberGame = () => {
             )}
           </View>
         )}
-      </KeyboardAvoidingView>
 
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.legendCard}>
-          <View style={styles.legendContainer}>
+      <View style={styles.legendCard}>
+        <View style={styles.legendContainer}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendCorrect]} />
               <Text style={styles.legendText}>Correct</Text>
@@ -527,7 +562,7 @@ export const NumberGame = () => {
             </View>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
     </View>
   );
 };
@@ -540,16 +575,19 @@ const styles = StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
   },
+  gameContentContainer: {
+    flex: 1,
+  },
   fixedHeader: {
     backgroundColor: '#F8FAFC',
     paddingHorizontal: scale(16),
-    paddingTop: verticalScale(16),
-    paddingBottom: verticalScale(8),
+    paddingTop: verticalScale(8),
+    paddingBottom: verticalScale(4),
   },
   headerContainer: {
     backgroundColor: '#FFFFFF',
-    borderRadius: moderateScale(16),
-    padding: scale(12),
+    borderRadius: moderateScale(12),
+    padding: scale(8),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -563,17 +601,17 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: '#F1F5F9',
-    minHeight: verticalScale(60),
+    minHeight: verticalScale(45),
   },
   headerChangeModeButton: {
     backgroundColor: 'transparent',
-    paddingVertical: verticalScale(6),
-    paddingHorizontal: scale(8),
-    borderRadius: moderateScale(8),
+    paddingVertical: verticalScale(4),
+    paddingHorizontal: scale(6),
+    borderRadius: moderateScale(6),
   },
   changeModeText: {
     color: '#64748B',
-    fontSize: moderateScale(11),
+    fontSize: moderateScale(9),
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -612,19 +650,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: scale(12),
-    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(10),
+    paddingVertical: verticalScale(6),
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
   previousAttemptsTitle: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     fontWeight: '700',
     color: '#1F2937',
     letterSpacing: -0.2,
   },
   previousAttemptsCount: {
-    fontSize: moderateScale(10),
+    fontSize: moderateScale(8),
     fontWeight: '500',
     color: '#6B7280',
   },
@@ -632,11 +670,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   previousAttemptsScrollContent: {
-    padding: scale(8),
-    paddingTop: verticalScale(4),
+    padding: scale(6),
+    paddingTop: verticalScale(2),
   },
   attemptsGrid: {
-    gap: verticalScale(6),
+    gap: verticalScale(3),
   },
   attemptGridRow: {
     flexDirection: 'row',
@@ -654,18 +692,18 @@ const styles = StyleSheet.create({
     marginHorizontal: scale(2),
   },
   attemptNumber: {
-    width: scale(24),
-    height: scale(24),
-    borderRadius: scale(12),
+    width: scale(20),
+    height: scale(20),
+    borderRadius: scale(10),
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: verticalScale(4),
+    marginBottom: verticalScale(2),
   },
   attemptNumberText: {
-    fontSize: moderateScale(9),
+    fontSize: moderateScale(8),
     fontWeight: '600',
     color: '#64748B',
   },
@@ -675,9 +713,9 @@ const styles = StyleSheet.create({
   },
   currentInputCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: moderateScale(16),
+    borderRadius: moderateScale(12),
     marginHorizontal: scale(16), // Match header card margin
-    marginBottom: verticalScale(8),
+    marginBottom: verticalScale(4),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -700,25 +738,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: scale(12),
-    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(10),
+    paddingVertical: verticalScale(6),
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
   currentInputTitle: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     fontWeight: '700',
     color: '#1F2937',
     letterSpacing: -0.2,
   },
   currentInputAttempt: {
-    fontSize: moderateScale(10),
+    fontSize: moderateScale(8),
     fontWeight: '500',
     color: '#6B7280',
   },
   inputSection: {
     alignItems: 'center',
-    padding: scale(16),
+    padding: scale(12),
   },
   inputContainer: {
     flexDirection: 'row',
@@ -726,6 +764,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: scale(8),
     marginBottom: verticalScale(16),
+  },
+  digitDisplay: {
+    width: scale(52),
+    height: verticalScale(52),
+    borderRadius: moderateScale(16),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  digitDisplayActive: {
+    borderColor: '#3B82F6',
+    backgroundColor: '#DBEAFE',
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.15,
+  },
+  digitDisplayFilled: {
+    borderColor: '#22C55E',
+    backgroundColor: '#F0FDF4',
+  },
+  digitDisplayText: {
+    fontSize: moderateScale(24),
+    fontWeight: '700',
+    color: '#9CA3AF',
+    letterSpacing: -0.2,
+  },
+  digitDisplayTextFilled: {
+    color: '#1F2937',
   },
   tickButtonContainer: {
     alignItems: 'center',
@@ -856,11 +931,11 @@ const styles = StyleSheet.create({
   },
   legendCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: moderateScale(12),
+    borderRadius: moderateScale(8),
     marginHorizontal: scale(20),
-    marginVertical: verticalScale(8),
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(16),
+    marginVertical: verticalScale(4),
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(12),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -882,10 +957,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   legendDot: {
-    width: moderateScale(16),
-    height: moderateScale(16),
-    borderRadius: moderateScale(8),
-    marginBottom: verticalScale(4),
+    width: moderateScale(12),
+    height: moderateScale(12),
+    borderRadius: moderateScale(6),
+    marginBottom: verticalScale(3),
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -896,7 +971,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   legendText: {
-    fontSize: moderateScale(10),
+    fontSize: moderateScale(8),
     color: '#6B7280',
     fontWeight: '600',
     textAlign: 'center',
